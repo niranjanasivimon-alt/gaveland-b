@@ -42,12 +42,12 @@ function CinematicCamera({ isMobile }) {
   const done = useRef(false);
   useFrame((_, delta) => {
     if (done.current) return;
-    tRef.current = Math.min(tRef.current + delta * 0.26, 1); // ~3.8 s total
-    const ease = 1 - Math.pow(1 - tRef.current, 3);          // cubic ease-out
-    const startZ = isMobile ? 24 : 21;
+    tRef.current = Math.min(tRef.current + delta * 0.19, 1); // ~5.2 s — ultra-smooth
+    const ease = 1 - Math.pow(1 - tRef.current, 4);          // quartic ease-out (ultra smooth landing)
+    const startZ = isMobile ? 26 : 23;
     const finalZ = isMobile ? 16 : 13;
     camera.position.z = startZ - (startZ - finalZ) * ease;
-    camera.position.y = 5.5 - (5.5 - 1.5) * ease;
+    camera.position.y = 6.5 - (6.5 - 1.5) * ease;
     camera.lookAt(0, 0, 0);
     if (tRef.current >= 1) done.current = true;
   });
@@ -63,7 +63,7 @@ function RiseGroup({ show, riseDistance = 4, children }) {
   useFrame((_, delta) => {
     if (!groupRef.current) return;
     const target = show ? 0 : -riseDistance;
-    yRef.current += (target - yRef.current) * Math.min(1, delta * 2.2);
+    yRef.current += (target - yRef.current) * Math.min(1, delta * 1.45);
     groupRef.current.position.y = yRef.current;
     groupRef.current.visible = yRef.current > -riseDistance + 0.08;
   });
@@ -723,7 +723,7 @@ function LawBooks() {
 ───────────────────────────────────────────── */
 function GavelMesh({ gavelRef, onStrike }) {
   return (
-    <Float speed={0.85} rotationIntensity={0.04} floatIntensity={0.2}>
+    <Float speed={0.55} rotationIntensity={0.022} floatIntensity={0.28}>
       <group ref={gavelRef} position={[0.3, -0.5, 1.6]}
         rotation={[0.15, -0.25, -0.72]} scale={1.55}
         onClick={onStrike} style={{ cursor: 'pointer' }}>
@@ -948,15 +948,15 @@ function GavelScene({ onStrikeComplete, isMobile }) {
 
   useFrame(({ mouse, clock }) => {
     if (sceneRef.current) {
-      const lerpSpeed = isMobile ? 0.03 : 0.022;
+      const lerpSpeed = isMobile ? 0.022 : 0.014;
       sceneRef.current.rotation.y = THREE.MathUtils.lerp(
-        sceneRef.current.rotation.y, (mouse.x * Math.PI) / 22, lerpSpeed);
+        sceneRef.current.rotation.y, (mouse.x * Math.PI) / 24, lerpSpeed);
       sceneRef.current.rotation.x = THREE.MathUtils.lerp(
-        sceneRef.current.rotation.x, (-mouse.y * Math.PI) / 42, lerpSpeed);
+        sceneRef.current.rotation.x, (-mouse.y * Math.PI) / 48, lerpSpeed);
     }
     if (gavelRef.current && !isStriking) {
-      gavelRef.current.rotation.y += 0.001;
-      gavelRef.current.position.y = -0.5 + Math.sin(clock.getElapsedTime() * 0.5) * 0.025;
+      gavelRef.current.rotation.y += 0.0008;
+      gavelRef.current.position.y = -0.5 + Math.sin(clock.getElapsedTime() * 0.38) * 0.032;
     }
   });
 
@@ -1014,7 +1014,7 @@ function GavelScene({ onStrikeComplete, isMobile }) {
       <pointLight position={[2.2, 3.0, 5.5]} intensity={isMobile ? 3.0 : 4.5} color="#D4A83A" distance={22} decay={2} />
       <pointLight position={[-3.2, -3.0, 2.0]} intensity={isMobile ? 1.0 : 1.4} color="#ffb84a" distance={10} decay={2.5} />
 
-      <Environment preset="studio" background={false} />
+      <Environment preset="city" background={false} />
       <BackWall />
       <MarbleFloor />
 
@@ -1054,8 +1054,8 @@ function GavelScene({ onStrikeComplete, isMobile }) {
         size={isMobile ? 1.0 : 1.6} speed={isMobile ? 0.06 : 0.12}
         color="#D4A83A" opacity={0.28} />
       {!isMobile && <>
-        <Sparkles count={80} scale={12} size={0.8} speed={0.06} color="#ffffff" opacity={0.15} />
-        <ContactShadows position={[0, -5.14, 0]} opacity={0.92} scale={40} blur={2.8} far={12} color="#150804" />
+        <Sparkles count={100} scale={14} size={0.7} speed={0.05} color="#ffffff" opacity={0.12} />
+        <ContactShadows position={[0, -5.14, 0]} opacity={0.88} scale={44} blur={3.8} far={14} color="#120602" />
       </>}
     </group>
   );
@@ -1127,15 +1127,15 @@ export default function HeroSection() {
           : { opacity: 1, filter: 'blur(0px)' }}>
         {checkWebGL() ? (
           <Canvas
-            camera={{ position: [0, 5.5, isMobile ? 24 : 21], fov: isMobile ? 50 : 42 }}
+            camera={{ position: [0, 6.5, isMobile ? 26 : 23], fov: isMobile ? 50 : 42 }}
             shadows={isMobile ? false : 'soft'}
-            dpr={isMobile ? [0.65, 1] : [1, 2]}
-            performance={{ min: 0.5 }}
+            dpr={isMobile ? [0.75, 1.2] : [1, 2.5]}
+            performance={{ min: 0.45 }}
             gl={{
-              antialias: !isMobile,
+              antialias: true,
               alpha: true,
               toneMapping: THREE.ACESFilmicToneMapping,
-              toneMappingExposure: isMobile ? 1.1 : 1.22,
+              toneMappingExposure: isMobile ? 1.15 : 1.32,
               powerPreference: 'high-performance',
               shadowMapType: THREE.PCFShadowMap,
             }}>

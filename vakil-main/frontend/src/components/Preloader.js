@@ -158,12 +158,12 @@ const Preloader = ({ onComplete }) => {
                 style={{
                   boxShadow: '0 8px 40px rgba(201,168,76,0.38), 0 2px 14px rgba(109,7,26,0.16)',
                   border: '2.5px solid rgba(201,168,76,0.32)',
-                  background: 'white',
+                  background: 'transparent',
                 }}
               >
                 <img
-                  src="/logo.png"
-                  alt="VakilSetu"
+                  src="/logo-nobg.png"
+                  alt="Gavel & Brief"
                   className="w-full h-full object-contain"
                 />
               </motion.div>
@@ -177,7 +177,7 @@ const Preloader = ({ onComplete }) => {
                   className="font-serif font-bold mb-1.5"
                   style={{ color: '#6D071A', fontSize: '2.25rem', letterSpacing: '-0.02em' }}
                 >
-                  VakilSetu
+                  Gavel &amp; Brief
                 </motion.h1>
                 <motion.p
                   initial={{ opacity: 0 }}

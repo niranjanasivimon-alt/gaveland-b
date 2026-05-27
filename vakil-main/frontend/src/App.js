@@ -44,10 +44,10 @@ const ProtectedRoute = ({ children, allowedRole }) => {
 
 const PageShell = ({ children }) => (
   <motion.div
-    initial={{ opacity: 0, y: 14, scale: 0.995 }}
+    initial={{ opacity: 0, y: 18, scale: 0.992 }}
     animate={{ opacity: 1, y: 0, scale: 1 }}
-    exit={{ opacity: 0, y: -8, scale: 0.995 }}
-    transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+    exit={{ opacity: 0, y: -10, scale: 0.992 }}
+    transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
   >
     {children}
   </motion.div>
@@ -114,18 +114,17 @@ function App() {
 
   return (
     <BrowserRouter>
-      {/* Gold circle pattern overlay — uses multiply blend mode so it's visible on ANY white page */}
+      {/* Gold pattern sits behind ALL content at z:-1 — solid cards/components cover it naturally */}
       <div
         aria-hidden="true"
         style={{
           position: 'fixed',
           inset: 0,
-          zIndex: 9998,
+          zIndex: -1,
           backgroundImage: `url(${process.env.PUBLIC_URL}/gold-pattern.png)`,
           backgroundRepeat: 'repeat',
           backgroundSize: '68px 68px',
-          mixBlendMode: 'multiply',
-          opacity: 0.52,
+          opacity: 0.18,
           pointerEvents: 'none',
           userSelect: 'none',
         }}
