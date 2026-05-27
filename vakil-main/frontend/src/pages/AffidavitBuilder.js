@@ -123,25 +123,40 @@ const AffidavitBuilder = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100" data-testid="affidavit-page">
+    <div className="min-h-screen" style={{ background: '#FDFAF5' }} data-testid="affidavit-page">
       <Navbar />
 
-      <div className="max-w-5xl mx-auto px-6 pt-28 pb-10">
-        <div className="mb-8 flex items-start justify-between flex-wrap gap-4">
-          <div>
-            <h1 className="font-heading text-3xl font-bold text-slate-900" data-testid="affidavit-title">Affidavit Generator</h1>
-            <p className="text-sm text-slate-500 mt-1">Generate a legally formatted affidavit in your preferred Indian language.</p>
+      {/* Brand page header */}
+      <div className="pt-16">
+        <div className="px-6 py-8" style={{ background: 'linear-gradient(135deg, #7C1D2B 0%, #9b2335 55%, #4a1118 100%)' }}>
+          <div className="max-w-5xl mx-auto flex items-start justify-between flex-wrap gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(201,168,76,0.2)' }}>
+                  <FileText className="w-4.5 h-4.5" style={{ color: '#F0C84A' }} />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'rgba(201,168,76,0.8)' }}>Document Tools</span>
+                  <span style={{ color: 'rgba(201,168,76,0.4)' }}>›</span>
+                  <span className="text-xs font-semibold uppercase tracking-widest text-white/60">Affidavit Builder</span>
+                </div>
+              </div>
+              <h1 className="font-serif text-2xl font-bold text-white" data-testid="affidavit-title">Affidavit Generator</h1>
+              <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.6)' }}>Generate a legally formatted affidavit in your preferred Indian language.</p>
+            </div>
+            <button
+              onClick={() => setShowWriterModal(true)}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all hover:opacity-90 shadow-lg self-center"
+              style={{ background: 'rgba(201,168,76,0.2)', color: '#F0C84A', border: '1px solid rgba(201,168,76,0.35)', backdropFilter: 'blur(8px)' }}
+            >
+              <PenLine className="w-4 h-4" />
+              Hire Legal Content Writer
+            </button>
           </div>
-          <button
-            onClick={() => setShowWriterModal(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm text-white transition-all hover:opacity-90 shadow-md"
-            style={{ background: 'linear-gradient(135deg, #7C1D2B, #9b2335)' }}
-          >
-            <PenLine className="w-4 h-4" />
-            Hire Legal Content Writer
-          </button>
         </div>
+      </div>
 
+      <div className="max-w-5xl mx-auto px-6 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Form */}
           <div className="bg-white rounded-2xl border border-slate-200 p-6" data-testid="affidavit-form">

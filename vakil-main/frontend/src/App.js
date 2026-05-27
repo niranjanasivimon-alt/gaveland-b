@@ -31,6 +31,7 @@ import MultiStepCaseForm from './pages/MultiStepCaseForm';
 import IPCBrowser from './pages/IPCBrowser';
 import PartyInPerson from './pages/PartyInPerson';
 import ContentWriterDashboard from './pages/ContentWriterDashboard';
+import CaseStatusPage from './pages/CaseStatusPage';
 import './App.css';
 
 const ProtectedRoute = ({ children, allowedRole }) => {
@@ -80,6 +81,7 @@ function AppContent() {
           <Route path="/ipc" element={<PageShell><IPCBrowser /></PageShell>} />
           <Route path="/client/pip" element={<ProtectedRoute allowedRole="client"><PageShell><PartyInPerson /></PageShell></ProtectedRoute>} />
           <Route path="/writer/dashboard" element={<ProtectedRoute allowedRole="legal_writer"><PageShell><ContentWriterDashboard /></PageShell></ProtectedRoute>} />
+          <Route path="/case/:nyayId" element={<PageShell><CaseStatusPage /></PageShell>} />
         </Routes>
       </AnimatePresence>
       <ChatWidget />
@@ -123,8 +125,8 @@ function App() {
           zIndex: -1,
           backgroundImage: `url(${process.env.PUBLIC_URL}/gold-pattern.png)`,
           backgroundRepeat: 'repeat',
-          backgroundSize: '68px 68px',
-          opacity: 0.18,
+          backgroundSize: '320px 320px',
+          opacity: 0.28,
           pointerEvents: 'none',
           userSelect: 'none',
         }}

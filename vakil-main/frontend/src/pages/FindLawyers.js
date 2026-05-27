@@ -43,14 +43,19 @@ const FindLawyers = () => {
   });
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen" style={{ background: '#FDFAF5' }}>
       <Navbar />
 
       {/* Hero */}
-      <div className="bg-gradient-to-br from-slate-900 to-slate-800 py-14 px-6">
+      <div className="py-14 px-6" style={{ background: 'linear-gradient(135deg, #7C1D2B 0%, #9b2335 55%, #4a1118 100%)' }}>
         <div className="max-w-5xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-4 text-xs font-semibold"
+            style={{ background: 'rgba(201,168,76,0.2)', color: '#F0C84A', border: '1px solid rgba(201,168,76,0.3)' }}>
+            <Users className="w-3.5 h-3.5" />
+            500+ Verified Lawyers Across India
+          </div>
           <h1 className="text-3xl font-bold text-white mb-2">Find Your Lawyer</h1>
-          <p className="text-slate-400 mb-8">Browse verified lawyers, check availability, and book an appointment</p>
+          <p className="mb-8" style={{ color: 'rgba(255,255,255,0.65)' }}>Browse verified lawyers, check availability, and book an appointment</p>
           <div className="relative max-w-xl mx-auto">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
             <input

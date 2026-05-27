@@ -12,7 +12,8 @@ import {
   CheckCircle, Circle, AlertCircle, MessageCircle, Radio,
   User, FileText, Loader2, ChevronDown, ChevronUp, Info,
   Gavel, Scale, Search, BookOpen, HelpCircle,
-  Upload, Download, Trash2, Paperclip, File as FileIcon, Image, X
+  Upload, Download, Trash2, Paperclip, File as FileIcon, Image, X,
+  Plus, Flag, Copy, Check, Link2
 } from 'lucide-react';
 
 // ─── File type helpers ────────────────────────────────────────────────────────
@@ -311,6 +312,11 @@ const CaseDetailPage = () => {
   const [showChat, setShowChat] = useState(false);
   const [showDocs, setShowDocs] = useState(false);
   const [expandedGuide, setExpandedGuide] = useState(true);
+  const [timeline, setTimeline] = useState([]);
+  const [showAddEvent, setShowAddEvent] = useState(false);
+  const [newEvent, setNewEvent] = useState({ title: '', description: '', date: '', type: 'milestone' });
+  const [addingEvent, setAddingEvent] = useState(false);
+  const [nyayCopied, setNyayCopied] = useState(false);
   const prevStatusRef = useRef(null);
 
   // Fetch base case from the role-specific case list.
@@ -337,12 +343,58 @@ const CaseDetailPage = () => {
     } catch {}
   }, [caseId]);
 
+  const fetchTimeline = useCallback(async () => {
+    try {
+      const { data } = await axios.get(`${API_URL}/api/cases/${caseId}/timeline`);
+      setTimeline(data);
+    } catch {}
+  }, [caseId]);
+
+  const addTimelineEvent = async () => {
+    if (!newEvent.title.trim()) return;
+    setAddingEvent(true);
+    try {
+      const { data } = await axios.post(`${API_URL}/api/cases/${caseId}/timeline`, {
+        ...newEvent, added_by: user?.name || 'Client',
+      });
+      setTimeline(prev => [...prev, data]);
+      setNewEvent({ title: '', description: '', date: '', type: 'milestone' });
+      setShowAddEvent(false);
+    } catch (e) {
+      alert(e.response?.data?.detail || 'Failed to add event');
+    } finally { setAddingEvent(false); }
+  };
+
+  const toggleEventDone = async (eventId, currentDone) => {
+    try {
+      await axios.patch(`${API_URL}/api/cases/${caseId}/timeline/${eventId}`, { completed: !currentDone });
+      setTimeline(prev => prev.map(e => e.id === eventId ? { ...e, completed: !currentDone } : e));
+    } catch {}
+  };
+
+  const deleteTimelineEvent = async (eventId) => {
+    if (!window.confirm('Remove this event?')) return;
+    try {
+      await axios.delete(`${API_URL}/api/cases/${caseId}/timeline/${eventId}`);
+      setTimeline(prev => prev.filter(e => e.id !== eventId));
+    } catch {}
+  };
+
+  const copyNyayLink = () => {
+    const nyayId = caseData?.nyayId || caseData?.nyay_id;
+    if (!nyayId) return;
+    navigator.clipboard.writeText(`${window.location.origin}/case/${nyayId}`);
+    setNyayCopied(true);
+    setTimeout(() => setNyayCopied(false), 2500);
+  };
+
   useEffect(() => { fetchCase(); }, [fetchCase]);
   useEffect(() => {
     pollStatus();
     const iv = setInterval(pollStatus, 15000);
     return () => clearInterval(iv);
   }, [pollStatus]);
+  useEffect(() => { fetchTimeline(); }, [fetchTimeline]);
 
   if (loading) {
     return (
@@ -424,10 +476,15 @@ const CaseDetailPage = () => {
                     {caseData?.case_type || 'Legal'} Case
                   </h1>
                   {(caseData?.nyayId || caseData?.nyay_id) && (
-                    <span className="inline-flex items-center gap-1 bg-white/20 text-white text-xs font-mono font-bold px-2.5 py-1 rounded-full">
+                    <button
+                      onClick={copyNyayLink}
+                      className="inline-flex items-center gap-1 bg-white/20 hover:bg-white/35 text-white text-xs font-mono font-bold px-2.5 py-1 rounded-full transition-all"
+                      title="Copy public tracker link"
+                    >
                       <Shield className="w-3 h-3" />
                       {caseData.nyayId || caseData.nyay_id}
-                    </span>
+                      {nyayCopied ? <Check className="w-3 h-3 text-green-300" /> : <Copy className="w-3 h-3 opacity-50" />}
+                    </button>
                   )}
                 </div>
                 <div className="flex flex-wrap items-center gap-3 text-sm text-white/70">
@@ -646,6 +703,147 @@ const CaseDetailPage = () => {
                   );
                 })}
               </div>
+            </motion.div>
+
+            {/* ── Milestone & Deadline Tracker ── */}
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.22 }}
+              className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                  <Flag className="w-4 h-4 text-slate-400" />
+                  Milestones &amp; Deadlines
+                </h2>
+                <button
+                  onClick={() => setShowAddEvent(v => !v)}
+                  className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-xl transition-all"
+                  style={{ background: showAddEvent ? '#7C1D2B' : '#F1F5F9', color: showAddEvent ? 'white' : '#374151' }}
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  {showAddEvent ? 'Cancel' : 'Add Event'}
+                </button>
+              </div>
+
+              <AnimatePresence>
+                {showAddEvent && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="overflow-hidden mb-4"
+                  >
+                    <div className="bg-slate-50 rounded-xl border border-slate-200 p-4 space-y-3">
+                      <input
+                        type="text"
+                        placeholder="Event title *"
+                        value={newEvent.title}
+                        onChange={e => setNewEvent(p => ({ ...p, title: e.target.value }))}
+                        className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#7C1D2B]/30"
+                      />
+                      <div className="flex gap-2">
+                        <select
+                          value={newEvent.type}
+                          onChange={e => setNewEvent(p => ({ ...p, type: e.target.value }))}
+                          className="flex-1 text-xs px-3 py-2 rounded-lg border border-slate-200 bg-white focus:outline-none"
+                        >
+                          <option value="milestone">Milestone</option>
+                          <option value="deadline">Deadline</option>
+                          <option value="hearing">Hearing</option>
+                          <option value="filing">Filing</option>
+                        </select>
+                        <input
+                          type="date"
+                          value={newEvent.date}
+                          onChange={e => setNewEvent(p => ({ ...p, date: e.target.value }))}
+                          className="flex-1 text-xs px-3 py-2 rounded-lg border border-slate-200 bg-white focus:outline-none"
+                        />
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="Notes (optional)"
+                        value={newEvent.description}
+                        onChange={e => setNewEvent(p => ({ ...p, description: e.target.value }))}
+                        className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#7C1D2B]/30"
+                      />
+                      <button
+                        onClick={addTimelineEvent}
+                        disabled={!newEvent.title.trim() || addingEvent}
+                        className="w-full py-2 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-50"
+                        style={{ background: '#7C1D2B' }}
+                      >
+                        {addingEvent ? 'Adding…' : 'Save Event'}
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {timeline.length === 0 ? (
+                <div className="text-center py-8 text-slate-400">
+                  <Flag className="w-8 h-8 mx-auto mb-2 opacity-25" />
+                  <p className="text-sm font-medium">No milestones added yet</p>
+                  <p className="text-xs mt-1">Track hearings, deadlines, and key case milestones</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {timeline.map(event => {
+                    const TC = {
+                      milestone: 'bg-purple-100 text-purple-700',
+                      deadline:  'bg-red-100 text-red-700',
+                      hearing:   'bg-amber-100 text-amber-700',
+                      filing:    'bg-blue-100 text-blue-700',
+                    };
+                    const isOverdue = event.date && !event.completed && new Date(event.date) < new Date();
+                    const isSoon = event.date && !event.completed && !isOverdue &&
+                      (new Date(event.date) - new Date() < 7 * 24 * 3600 * 1000);
+                    return (
+                      <motion.div
+                        key={event.id}
+                        initial={{ opacity: 0, x: -8 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className={`flex items-start gap-3 p-3 rounded-xl border transition-all ${
+                          event.completed ? 'bg-slate-50 border-slate-100 opacity-60' :
+                          isOverdue ? 'bg-red-50 border-red-200' :
+                          isSoon ? 'bg-amber-50 border-amber-200' :
+                          'bg-white border-slate-200 hover:border-slate-300'
+                        }`}
+                      >
+                        <button onClick={() => toggleEventDone(event.id, event.completed)} className="mt-0.5 flex-shrink-0">
+                          {event.completed
+                            ? <CheckCircle className="w-4 h-4 text-green-500" />
+                            : <Circle className="w-4 h-4 text-slate-300 hover:text-slate-500 transition-colors" />
+                          }
+                        </button>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className={`text-sm font-semibold ${event.completed ? 'line-through text-slate-400' : 'text-slate-800'}`}>
+                              {event.title}
+                            </p>
+                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${TC[event.type] || TC.milestone}`}>
+                              {event.type}
+                            </span>
+                            {isOverdue && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-red-500 text-white">OVERDUE</span>}
+                            {isSoon && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500 text-white">SOON</span>}
+                          </div>
+                          {event.description && <p className="text-xs text-slate-500 mt-0.5">{event.description}</p>}
+                          {event.date && (
+                            <p className="text-[10px] text-slate-400 mt-0.5 flex items-center gap-1">
+                              <Calendar className="w-2.5 h-2.5" />
+                              {new Date(event.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            </p>
+                          )}
+                        </div>
+                        <button onClick={() => deleteTimelineEvent(event.id)} className="flex-shrink-0 text-slate-200 hover:text-red-500 transition-colors">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              )}
             </motion.div>
           </div>
 

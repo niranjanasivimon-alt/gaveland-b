@@ -554,6 +554,12 @@ function ScalePan({ x }) {
 }
 
 function ScalesOfJustice() {
+  const swingRef = useRef();
+  useFrame(({ clock }) => {
+    if (swingRef.current) {
+      swingRef.current.rotation.z = Math.sin(clock.getElapsedTime() * 0.42) * 0.028;
+    }
+  });
   return (
     <group position={[-3.2, -4.65, 0.55]}>
       {/* Stepped marble plinth */}
@@ -590,25 +596,28 @@ function ScalesOfJustice() {
         <coneGeometry args={[0.036, 0.2, 16]} />
         <meshPhysicalMaterial {...GOLD} clearcoat={0.8} />
       </mesh>
-      {/* Cross-beam — very slight tilt */}
-      <mesh position={[0, 2.12, 0]} rotation={[0, 0, 0.055]}>
-        <cylinderGeometry args={[0.016, 0.016, 2.28, 24]} />
-        <meshPhysicalMaterial {...BRIGHT_GOLD} />
-      </mesh>
-      {/* Arm end knobs */}
-      {[-1.05, 1.05].map((x, i) => (
-        <mesh key={i} position={[x, 2.12, 0]}>
-          <sphereGeometry args={[0.036, 32, 32]} />
+      {/* ── Animated pendulum group — beam + arms + chains + pans all pivot at column top ── */}
+      <group ref={swingRef} position={[0, 2.12, 0]}>
+        {/* Cross-beam — static slight tilt preserved on the mesh, pendulum on parent group */}
+        <mesh rotation={[0, 0, 0.055]}>
+          <cylinderGeometry args={[0.016, 0.016, 2.28, 24]} />
           <meshPhysicalMaterial {...BRIGHT_GOLD} />
         </mesh>
-      ))}
-      {/* Chains */}
-      <ChainAssembly x={-1.05} topY={1.72} panY={1.14} count={12} />
-      <ChainAssembly x={1.05} topY={1.72} panY={1.14} count={12} />
-      {/* Pans */}
-      <group position={[0, 1.14, 0]}>
-        <ScalePan x={-1.05} />
-        <ScalePan x={1.05} />
+        {/* Arm end knobs */}
+        {[-1.05, 1.05].map((x, i) => (
+          <mesh key={i} position={[x, 0, 0]}>
+            <sphereGeometry args={[0.036, 32, 32]} />
+            <meshPhysicalMaterial {...BRIGHT_GOLD} />
+          </mesh>
+        ))}
+        {/* Chains — y offset by -2.12 into local swing-group space */}
+        <ChainAssembly x={-1.05} topY={-0.40} panY={-0.98} count={12} />
+        <ChainAssembly x={1.05} topY={-0.40} panY={-0.98} count={12} />
+        {/* Pans */}
+        <group position={[0, -0.98, 0]}>
+          <ScalePan x={-1.05} />
+          <ScalePan x={1.05} />
+        </group>
       </group>
     </group>
   );

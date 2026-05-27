@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Request, Response, Depends, WebSocket, WebSocketDisconnect, UploadFile, File
+from fastapi import FastAPI, APIRouter, HTTPException, Request, Response, Depends, WebSocket, WebSocketDisconnect, UploadFile, File, Body
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from dotenv import load_dotenv
@@ -1440,6 +1440,125 @@ async def get_cases(
         ))
 
     return result
+
+@api_router.get("/public/case/{nyay_id}")
+async def public_case_status(nyay_id: str):
+    """Public endpoint — no auth required. Used for NyayID case sharing."""
+    case = await db.cases.find_one({"$or": [{"nyayId": nyay_id}, {"nyay_id": nyay_id}]})
+    if not case:
+        raise HTTPException(status_code=404, detail="Case not found. Please verify the NyayID.")
+    lawyer_name = None
+    lawyer_specialization = None
+    lawyer_location = None
+    if case.get("lawyer_id"):
+        try:
+            lawyer = await db.users.find_one({"_id": ObjectId(case["lawyer_id"])})
+            if lawyer:
+                lawyer_name = lawyer.get("name")
+                lawyer_specialization = lawyer.get("specialization")
+                lawyer_location = lawyer.get("location")
+        except Exception:
+            pass
+    created = case.get("created_at")
+    created_iso = created.isoformat() if hasattr(created, "isoformat") else str(created or "")
+    raw_desc = case.get("description") or case.get("caseDescription") or ""
+    desc_preview = raw_desc[:300] + ("..." if len(raw_desc) > 300 else "")
+    return {
+        "nyay_id": nyay_id,
+        "case_status": case.get("case_status", "submitted"),
+        "category": case.get("category", case.get("case_type", "General")),
+        "description_preview": desc_preview,
+        "location": case.get("location", ""),
+        "urgency": case.get("urgency", "Medium"),
+        "created_at": created_iso,
+        "status_history": case.get("status_history", []),
+        "timeline_events": case.get("timeline_events", []),
+        "lawyer_name": lawyer_name,
+        "lawyer_specialization": lawyer_specialization,
+        "lawyer_location": lawyer_location,
+    }
+
+
+@api_router.get("/cases/{case_id}/timeline")
+async def get_case_timeline(case_id: str, current_user: dict = Depends(get_current_user)):
+    """Get timeline events for a case."""
+    try:
+        case = await db.cases.find_one({"_id": ObjectId(case_id)})
+    except Exception:
+        raise HTTPException(status_code=404, detail="Case not found")
+    if not case:
+        raise HTTPException(status_code=404, detail="Case not found")
+    return {"timeline_events": case.get("timeline_events", []), "status_history": case.get("status_history", [])}
+
+
+@api_router.post("/cases/{case_id}/timeline")
+async def add_timeline_event(case_id: str, event: dict = Body(...), current_user: dict = Depends(get_current_user)):
+    """Add a timeline milestone/event to a case."""
+    try:
+        case = await db.cases.find_one({"_id": ObjectId(case_id)})
+    except Exception:
+        raise HTTPException(status_code=404, detail="Case not found")
+    if not case:
+        raise HTTPException(status_code=404, detail="Case not found")
+    uid = str(current_user.get("id") or current_user.get("_id") or "")
+    if current_user.get("role") == "client" and case.get("user_id") != uid:
+        raise HTTPException(status_code=403, detail="Access denied")
+    timeline_events = list(case.get("timeline_events") or [])
+    new_event = {
+        "id": str(ObjectId()),
+        "title": str(event.get("title", ""))[:200],
+        "description": str(event.get("description", ""))[:500],
+        "date": str(event.get("date", "")),
+        "type": str(event.get("type", "milestone")),
+        "completed": bool(event.get("completed", False)),
+        "added_by": current_user.get("name", "User"),
+        "added_by_role": current_user.get("role", "client"),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    timeline_events.append(new_event)
+    await db.cases.update_one({"_id": ObjectId(case_id)}, {"$set": {"timeline_events": timeline_events}})
+    return new_event
+
+
+@api_router.delete("/cases/{case_id}/timeline/{event_id}")
+async def delete_timeline_event(case_id: str, event_id: str, current_user: dict = Depends(get_current_user)):
+    """Delete a timeline event."""
+    try:
+        case = await db.cases.find_one({"_id": ObjectId(case_id)})
+    except Exception:
+        raise HTTPException(status_code=404, detail="Case not found")
+    if not case:
+        raise HTTPException(status_code=404, detail="Case not found")
+    uid = str(current_user.get("id") or current_user.get("_id") or "")
+    if current_user.get("role") == "client" and case.get("user_id") != uid:
+        raise HTTPException(status_code=403, detail="Access denied")
+    updated = [e for e in (case.get("timeline_events") or []) if e.get("id") != event_id]
+    await db.cases.update_one({"_id": ObjectId(case_id)}, {"$set": {"timeline_events": updated}})
+    return {"ok": True}
+
+
+@api_router.patch("/cases/{case_id}/timeline/{event_id}")
+async def update_timeline_event(case_id: str, event_id: str, event: dict = Body(...), current_user: dict = Depends(get_current_user)):
+    """Update a timeline event (mark complete, edit details)."""
+    try:
+        case = await db.cases.find_one({"_id": ObjectId(case_id)})
+    except Exception:
+        raise HTTPException(status_code=404, detail="Case not found")
+    if not case:
+        raise HTTPException(status_code=404, detail="Case not found")
+    uid = str(current_user.get("id") or current_user.get("_id") or "")
+    if current_user.get("role") == "client" and case.get("user_id") != uid:
+        raise HTTPException(status_code=403, detail="Access denied")
+    events = list(case.get("timeline_events") or [])
+    for i, e in enumerate(events):
+        if e.get("id") == event_id:
+            for k, v in event.items():
+                if k not in ("id", "created_at", "added_by", "added_by_role"):
+                    events[i][k] = v
+            break
+    await db.cases.update_one({"_id": ObjectId(case_id)}, {"$set": {"timeline_events": events}})
+    return {"ok": True}
+
 
 @api_router.get("/lawyers", response_model=List[UserResponse])
 async def get_lawyers():

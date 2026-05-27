@@ -396,7 +396,7 @@ export default function ContentWriterDashboard() {
   const displayedDrafts = tab === 'available' ? availableDrafts : myDrafts;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen" style={{ background: '#FDFAF5' }}>
       <Navbar />
 
       <AnimatePresence>
@@ -408,42 +408,49 @@ export default function ContentWriterDashboard() {
         )}
       </AnimatePresence>
 
-      <div className="max-w-5xl mx-auto px-4 py-10">
-
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-start justify-between mb-8 gap-4 flex-wrap"
-        >
-          <div>
-            <div className="flex items-center gap-3 mb-1">
-              <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center">
-                <PenLine className="w-5 h-5 text-white" />
+      {/* Brand page header */}
+      <div className="pt-16">
+        <div className="px-6 py-8" style={{ background: 'linear-gradient(135deg, #7C1D2B 0%, #9b2335 55%, #4a1118 100%)' }}>
+          <div className="max-w-5xl mx-auto flex items-start justify-between flex-wrap gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(201,168,76,0.2)' }}>
+                  <PenLine className="w-4.5 h-4.5" style={{ color: '#F0C84A' }} />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'rgba(201,168,76,0.8)' }}>Writer Portal</span>
+                  <span style={{ color: 'rgba(201,168,76,0.4)' }}>›</span>
+                  <span className="text-xs font-semibold uppercase tracking-widest text-white/60">Dashboard</span>
+                </div>
               </div>
-              <h1 className="text-2xl font-bold text-slate-900">Legal Writer Dashboard</h1>
+              <h1 className="font-serif text-2xl font-bold text-white">Legal Writer Dashboard</h1>
+              <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                Welcome back, <strong style={{ color: 'rgba(255,255,255,0.9)' }}>{user?.name}</strong>. Accept draft requests and earn for every submission.
+              </p>
             </div>
-            <p className="text-slate-500 text-sm ml-13">
-              Welcome back, <strong>{user?.name}</strong>. Accept draft requests and earn for every submission.
-            </p>
+            <div className="flex gap-2 self-center">
+              <button
+                onClick={fetchData}
+                disabled={loading}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all disabled:opacity-50"
+                style={{ background: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.85)', border: '1px solid rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)' }}
+              >
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                Refresh
+              </button>
+              <button
+                onClick={() => setShowNewModal(true)}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all hover:opacity-90"
+                style={{ background: 'rgba(201,168,76,0.2)', color: '#F0C84A', border: '1px solid rgba(201,168,76,0.35)', backdropFilter: 'blur(8px)' }}
+              >
+                <Plus className="w-4 h-4" /> New Request
+              </button>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <button
-              onClick={fetchData}
-              disabled={loading}
-              className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-sm font-medium hover:bg-white transition-colors disabled:opacity-50"
-            >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-              Refresh
-            </button>
-            <button
-              onClick={() => setShowNewModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-sm font-semibold transition-colors"
-            >
-              <Plus className="w-4 h-4" /> New Request
-            </button>
-          </div>
-        </motion.div>
+        </div>
+      </div>
+
+      <div className="max-w-5xl mx-auto px-4 py-8">
 
         {/* Stats */}
         {loading ? (

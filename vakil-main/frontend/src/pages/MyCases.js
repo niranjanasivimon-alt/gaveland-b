@@ -5,7 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import {
   Loader2, FileText, MapPin, Calendar, Clock, Shield,
   ChevronDown, ChevronUp, CheckCircle, Circle, AlertCircle,
-  MessageCircle, Radio, RefreshCw, User, ExternalLink
+  MessageCircle, Radio, RefreshCw, User, ExternalLink,
+  Copy, Check
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import API_URL from '../lib/api';
@@ -192,6 +193,7 @@ function statusLabel(s) {
 const MyCases = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [copiedNyay, setCopiedNyay] = useState(null);
   const [cases, setCases] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedCase, setExpandedCase] = useState(null);
@@ -351,9 +353,24 @@ const MyCases = () => {
                             {statusLabel(currentStatus)}
                           </span>
                           {(c.nyayId || c.nyay_id) && (
-                            <span className="text-xs bg-slate-900 text-white px-2 py-0.5 rounded-full flex items-center gap-1">
-                              <Shield className="w-3 h-3" /> {c.nyayId || c.nyay_id}
-                            </span>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const nyayId = c.nyayId || c.nyay_id;
+                                navigator.clipboard.writeText(`${window.location.origin}/case/${nyayId}`);
+                                setCopiedNyay(nyayId);
+                                setTimeout(() => setCopiedNyay(null), 2500);
+                              }}
+                              title="Copy public case tracker link"
+                              className="text-xs bg-slate-900 hover:bg-slate-700 text-white px-2 py-0.5 rounded-full flex items-center gap-1 transition-colors"
+                            >
+                              <Shield className="w-3 h-3" />
+                              {c.nyayId || c.nyay_id}
+                              {copiedNyay === (c.nyayId || c.nyay_id)
+                                ? <Check className="w-2.5 h-2.5 text-green-400" />
+                                : <Copy className="w-2.5 h-2.5 opacity-50" />
+                              }
+                            </button>
                           )}
                           {unreadByCase[c.id] > 0 && (
                             <span className="text-xs bg-red-500 text-white px-2 py-0.5 rounded-full flex items-center gap-1 font-semibold" data-testid={`unread-badge-${c.id}`}>

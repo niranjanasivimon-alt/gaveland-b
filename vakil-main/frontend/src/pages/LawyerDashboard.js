@@ -253,38 +253,54 @@ const LawyerDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100" data-testid="lawyer-dashboard-page">
+    <div className="min-h-screen" style={{ background: '#FDFAF5' }} data-testid="lawyer-dashboard-page">
       <Navbar />
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        <div className="mb-6">
-          <h1 className="font-heading text-4xl font-bold text-slate-900 mb-2" data-testid="dashboard-title">
-            Lawyer Dashboard
-          </h1>
-          <p className="text-lg text-slate-600">Manage cases and referrals</p>
+      {/* Brand page header */}
+      <div className="pt-16">
+        <div className="px-6 py-8" style={{ background: 'linear-gradient(135deg, #7C1D2B 0%, #9b2335 55%, #4a1118 100%)' }}>
+          <div className="max-w-7xl mx-auto flex items-start justify-between flex-wrap gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(201,168,76,0.2)' }}>
+                  <Briefcase className="w-4 h-4" style={{ color: '#F0C84A' }} />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'rgba(201,168,76,0.8)' }}>Lawyer Portal</span>
+                  <span style={{ color: 'rgba(201,168,76,0.4)' }}>›</span>
+                  <span className="text-xs font-semibold uppercase tracking-widest text-white/60">Dashboard</span>
+                </div>
+              </div>
+              <h1 className="font-serif text-2xl font-bold text-white" data-testid="dashboard-title">Lawyer Dashboard</h1>
+              <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.6)' }}>Manage cases, referrals and track your performance</p>
+            </div>
+            {/* Tabs row — positioned in header */}
+            <div className="flex gap-2 flex-wrap self-end" data-testid="dashboard-tabs">
+              {[
+                { id: 'cases', label: 'Available Cases', icon: FileText },
+                { id: 'mycases', label: 'My Active Cases', icon: Briefcase },
+                { id: 'referrals', label: 'Referrals', icon: Send },
+                { id: 'performance', label: 'Performance', icon: TrendingUp },
+              ].map(({ id, label, icon: Icon }) => (
+                <button
+                  key={id}
+                  onClick={() => setActiveTab(id)}
+                  className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                    activeTab === id ? 'text-[#7C1D2B] bg-white shadow-sm' : 'text-white/70 hover:text-white hover:bg-white/10'
+                  }`}
+                  style={activeTab === id ? {} : { border: '1px solid rgba(255,255,255,0.2)' }}
+                  data-testid={`tab-${id}`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
+      </div>
 
-        {/* Tabs */}
-        <div className="flex gap-2 mb-6 flex-wrap" data-testid="dashboard-tabs">
-          {[
-            { id: 'cases', label: 'Available Cases', icon: FileText },
-            { id: 'mycases', label: 'My Active Cases', icon: Briefcase },
-            { id: 'referrals', label: 'Referrals', icon: Send },
-            { id: 'performance', label: 'Performance', icon: TrendingUp },
-          ].map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              onClick={() => setActiveTab(id)}
-              className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
-                activeTab === id ? 'bg-slate-900 text-white' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
-              }`}
-              data-testid={`tab-${id}`}
-            >
-              <Icon className="w-4 h-4" />
-              {label}
-            </button>
-          ))}
-        </div>
+      <div className="max-w-7xl mx-auto px-6 py-8">
 
         {activeTab === 'cases' && (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">

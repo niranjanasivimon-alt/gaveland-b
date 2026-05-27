@@ -207,13 +207,31 @@ const LawyerBooking = () => {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen" style={{ background: '#FDFAF5' }}>
       <Navbar />
-      <div className="max-w-6xl mx-auto px-4 py-8">
 
-        <button onClick={() => navigate('/client/lawyers')} className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 mb-6 transition-colors">
-          <ArrowLeft className="w-4 h-4" /> Back to all lawyers
-        </button>
+      {/* Brand page header */}
+      <div className="pt-16">
+        <div className="px-6 py-6" style={{ background: 'linear-gradient(135deg, #7C1D2B 0%, #9b2335 55%, #4a1118 100%)' }}>
+          <div className="max-w-6xl mx-auto flex items-center gap-4">
+            <button onClick={() => navigate('/client/lawyers')}
+              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl transition-all"
+              style={{ background: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.8)', border: '1px solid rgba(255,255,255,0.2)' }}>
+              <ArrowLeft className="w-3.5 h-3.5" /> All Lawyers
+            </button>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'rgba(201,168,76,0.8)' }}>Book a Consultation</span>
+              </div>
+              <h1 className="font-serif text-xl font-bold text-white mt-0.5">
+                {lawyer?.name || 'Lawyer Booking'}
+              </h1>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto px-4 py-8">
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
 
