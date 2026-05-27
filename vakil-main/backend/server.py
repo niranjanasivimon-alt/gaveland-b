@@ -4720,12 +4720,12 @@ async def startup_event():
     # Seed demo legal writer account
     test_writer_email = "writer@test.com"
     existing_writer = await db.legal_writers.find_one({"email": test_writer_email})
+    hashed_pw = bcrypt.hashpw("password123".encode(), bcrypt.gensalt()).decode()
     if not existing_writer:
-        hashed_pw = bcrypt.hashpw("password123".encode(), bcrypt.gensalt()).decode()
         writer_doc = {
             "email": test_writer_email,
             "name": "Demo Content Writer",
-            "password": hashed_pw,
+            "password_hash": hashed_pw,
             "role": "legal_writer",
             "specializations": ["affidavit", "legal notice", "contract", "petition"],
             "languages": ["English", "Hindi", "Marathi"],
@@ -4736,6 +4736,13 @@ async def startup_event():
         }
         await db.legal_writers.insert_one(writer_doc)
         logger.info("Seeded demo legal writer: writer@test.com")
+    elif "password_hash" not in existing_writer:
+        # Patch legacy document that was seeded with wrong field name
+        await db.legal_writers.update_one(
+            {"email": test_writer_email},
+            {"$set": {"password_hash": hashed_pw}, "$unset": {"password": ""}}
+        )
+        logger.info("Patched demo legal writer password_hash field")
 
     # Write test credentials
     
